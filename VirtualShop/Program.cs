@@ -54,7 +54,7 @@ namespace VirtualShop
                         break;
 
                     case ParameterShowBasket:
-                        client.ShowInventory();
+                        client.ShowProducts();
                         break;
 
                     case ParameterShop:
@@ -71,53 +71,60 @@ namespace VirtualShop
                 }
 
                 Console.ReadKey();
+            
             }
         }
     }
 
     public class Deal
     {
-        private readonly List<Product> _basket;
+        protected int Money;
+        protected List<Product> Products;
 
         public Deal()
         {
-            _basket = new List<Product>();
+            Products = new List<Product>();
         }
 
-        public void FillBasket(Product product) => _basket.Add(product);
+        public bool IsAbleToPay => PriceBasket <= Money;
 
-        protected int PriceBasket => Basket.Sum(product => product.Price);
+        public void FillProducts(Product product) => Products.Add(product);
 
-        protected void ClearBasket() => _basket.Clear();
+        public IReadOnlyCollection<Product> GetProducts => Products;
 
-        protected IReadOnlyCollection<Product> Basket => _basket;
+        public virtual void ShowProducts()
+        {
+            foreach (var product in Products)
+                Console.WriteLine($"{product.Name} по цене: {product.Price}.");
+        }
+
+        protected int PriceBasket => Products.Sum(product => product.Price);
 
     }
 
     public class Client : Deal
-    {
+    {       
         private readonly List<Product> _inventory;
-        private int _money;
 
         public Client(int money)
         {
             _inventory = new List<Product>();
-            _money = money;
+            Money = money;
         }
-
-        public bool IsAbleToPay => PriceBasket <= _money;
-
-        public void BuyProducts(IReadOnlyCollection<Product> basket)
+     
+        public void BuyProducts()
         {
-            if (basket.Count > 0)
+            if (Products.Count > 0)
             {               
-                _money -= PriceBasket;
+                Money -= PriceBasket;
 
-                _inventory.AddRange(basket);
+                _inventory.AddRange(Products);
+
+                Products.Clear();
 
                 Console.WriteLine($"Вы купили: ");
 
-                foreach (var product in basket)
+                foreach (var product in GetProducts)
                     Console.WriteLine($"{product.Name} по цене: {product.Price}.");
             }
             else
@@ -126,51 +133,32 @@ namespace VirtualShop
             }
         }
 
-        public void ShowInventory()
+        public override void ShowProducts()
         {
             foreach (var product in _inventory)
                 Console.WriteLine($"{product.Name} по цене: {product.Price}.");
         }
+
     }
 
     public class Seller : Deal
     {
-        private int _earnedMoney;
-        private List<Product> _products;
-
-        public Seller()
-        {
-            _products = new List<Product>();
-            _earnedMoney = 0;
-        }
-
-        public IReadOnlyCollection<Product> Products => _products;
-
-        public void AddProducts(List<Product> products) => _products.AddRange(products);
+        public void AddProducts(List<Product> products) => Products.AddRange(products);
 
         public void SellProducts(Client client)
         {            
             if (client.IsAbleToPay)
             {
-                _earnedMoney += PriceBasket;
+                Products = Products.Except(client.GetProducts).ToList();
 
-                _products = _products.Except(Basket).ToList();
-
-                client.BuyProducts(Basket);
-
-                ClearBasket();
+                client.BuyProducts();
             }
             else
-            {
+            {              
                 Console.WriteLine("У клиента недостаточно денег, чтобы купить товар.");               
             }
         }
 
-        public void ShowProducts()
-        {
-            foreach (var product in Products)
-                Console.WriteLine($"{product.Name} по цене: {product.Price}.");
-        }
     }
 
     public class Market
@@ -197,7 +185,7 @@ namespace VirtualShop
 
                 userInput = Console.ReadLine();
 
-                PutInBasket(_seller, userInput);
+                PutInBasket(_seller, _client, userInput);
 
                 Console.WriteLine($"Если хотите продолжить покупки напишите '{ContinueChoppingCommand}' или нажмите 'Enter'.");
 
@@ -211,13 +199,13 @@ namespace VirtualShop
            
         }
 
-        private void PutInBasket(Seller seller, string userInput)
+        private void PutInBasket(Seller seller, Client client, string userInput)
         {
-            foreach (var product in seller.Products)
+            foreach (var product in seller.GetProducts)
             {
                 if (product.Name.ToLower() == userInput.ToLower())
                 {
-                    seller.FillBasket(product);
+                    client.FillProducts(product);
 
                     Console.WriteLine($"{product.Name} добавлен в корзину.");
                 }
