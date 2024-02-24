@@ -12,14 +12,14 @@ namespace VirtualShop
         private const int ParameterExit = 4;
 
         static void Main()
-        {           
+        {
             int money = 500;
             bool isActive = true;
 
             Seller seller = new Seller();
             Client client = new Client(money);
-            Market market = new Market();
 
+            Market market = Market.Initialize();
             PurchaseHandler purchaseHandler = PurchaseHandler.Initialize();
 
             market.AddProducts(new List<Product>
@@ -47,25 +47,25 @@ namespace VirtualShop
 
                 string userInput = Console.ReadLine();
 
-                int.TryParse( userInput, out int inputNumber );
+                int.TryParse(userInput, out int inputNumber);
 
                 switch (inputNumber)
                 {
                     case ParameterShowAssortment:
                         seller.ShowProducts();
-                    break; 
+                        break;
 
                     case ParameterShowBasket:
                         client.ShowProducts();
-                    break; 
+                        break;
 
                     case ParameterShop:
-                        purchaseHandler.Buy();
-                    break; 
+                        purchaseHandler.Buy(seller, client);
+                        break;
 
                     case ParameterExit:
                         isActive = false;
-                    break;
+                        break;
 
                     default:
                         Console.WriteLine("Некорректный ввод.");
@@ -74,7 +74,7 @@ namespace VirtualShop
 
                 Console.ReadKey();
             }
-        }      
+        }
     }
 
     public interface IShower
@@ -84,6 +84,8 @@ namespace VirtualShop
 
     public class PurchaseHandler
     {
+        private const string ContinueChopping = "Купить";
+
         static public PurchaseHandler HandlerSingle = null;
 
         protected PurchaseHandler() { }
@@ -91,14 +93,46 @@ namespace VirtualShop
         static public PurchaseHandler Initialize()
         {
             if (HandlerSingle == null)
-                HandlerSingle = new PurchaseHandler();            
+                HandlerSingle = new PurchaseHandler();
 
             return HandlerSingle;
         }
 
-        public void Buy()
+        public void Buy(Seller seller, Client client)
         {
-            Console.WriteLine("Я покупаю.");
+            bool canPurchase = true;
+            string userInput;
+
+            while (canPurchase)
+            {
+                Console.WriteLine($"Для того чтобы положить продукт в корзину введите его название.");
+
+                userInput = Console.ReadLine();
+
+                PutInBasket(seller, client, userInput);
+
+                Console.WriteLine($"Если хотите продолжить покупки напишите '{ContinueChopping}' или нажмите 'Enter'.");
+
+                userInput = Console.ReadLine();
+
+                if (userInput.ToLower() == ContinueChopping.ToLower())                
+                    canPurchase = false;               
+            }
+
+            client.BuyProducts(seller);
+        }
+
+        private void PutInBasket(Seller seller, Client client, string userInput)
+        {
+            foreach (var product in seller.Products)
+            {
+                if (product.Name.ToLower() == userInput.ToLower())
+                {
+                    client.AddToBasket(product);
+
+                    Console.WriteLine($"{product.Name} добавлен в корзину.");
+                }
+            }
         }
 
     }
@@ -142,14 +176,15 @@ namespace VirtualShop
 
         public void ShowProducts()
         {
-            foreach (var product in _inventory)           
-                Console.WriteLine($"{product.Name} по цене: {product.Price}.");           
+            foreach (var product in _inventory)
+                Console.WriteLine($"{product.Name} по цене: {product.Price}.");
         }
     }
 
     public class Seller : Market, IShower
     {
         private int _earnedMoney;
+
         public Seller()
         {
             _earnedMoney = 0;
@@ -180,26 +215,35 @@ namespace VirtualShop
 
     public class Market
     {
-        private readonly List<Product> _basket;
-        private List<Product> _products;
+        static public Market MarketSingle = null;
+        static private List<Product> _basket;
+        static private List<Product> _products;
 
-        public Market()
+        protected Market() { }
+        
+        static public Market Initialize()
         {
+            if (MarketSingle == null)            
+                MarketSingle = new Market();
+            
             _products = new List<Product>();
             _basket = new List<Product>();
+
+            return MarketSingle;
         }
 
         public void AddProducts(List<Product> products) => _products.AddRange(products);
 
         public IReadOnlyCollection<Product> Products => _products;
 
+        protected void ClearBasket() => _basket.Clear();
+
+        protected IReadOnlyCollection<Product> Basket => _basket;
+
         protected void RemoveProducts() => _products = _products.Except(_basket).ToList();
 
         protected void FillBasket(Product product) => _basket.Add(product);
 
-        protected void ClearBasket() => _basket.Clear();
-
-        protected IReadOnlyCollection<Product> Basket => _basket;
     }
 
     public class Product
