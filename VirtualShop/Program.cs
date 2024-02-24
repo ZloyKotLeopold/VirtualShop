@@ -40,13 +40,35 @@ namespace VirtualShop
                 Console.Clear();
 
                 Console.WriteLine($"Для того чтобы посмотреть ассортимент магазина введите - {ParameterShowAssortment}");
-                Console.WriteLine($"Для того чтобы посмотреть корзину введите - {ParameterShowBasket}");
+                Console.WriteLine($"Для того чтобы посмотреть ваши вещи введите - {ParameterShowBasket}");
                 Console.WriteLine($"Для того чтобы совершать покупки введите - {ParameterShop}");
                 Console.WriteLine($"Для того чтобы выйти введите - {ParameterExit}");
 
                 userInput = Console.ReadLine();
 
+                int.TryParse( userInput, out int inputNumber );
 
+                switch (inputNumber)
+                {
+                    case ParameterShowAssortment:
+
+                    break; 
+
+                    case ParameterShowBasket:
+
+                    break; 
+
+                    case ParameterShop:
+
+                    break; 
+
+                    case ParameterExit:
+                        isActive = false;
+                    break;
+
+                    default:
+                        break;
+                }
 
                 Console.ReadKey();
             }
@@ -98,7 +120,13 @@ namespace VirtualShop
 
     }
 
-    public class Client : Market
+    public interface IShower
+    {
+        void ShowProducts();
+    }
+
+
+    public class Client : Market, IShower
     {
         private List<Product> _inventory;
         private int _money;
@@ -108,6 +136,8 @@ namespace VirtualShop
             _inventory = new List<Product>();
             _money = money;
         }
+
+        public int Money => _money;
 
         public IReadOnlyCollection<Product> Inventory => _inventory;
 
@@ -133,10 +163,14 @@ namespace VirtualShop
             }
         }
 
-        public int Money => _money;
+        public void ShowProducts()
+        {
+            foreach (var product in _inventory)           
+                Console.WriteLine($"{product.Name} по цене: {product.Price}.");           
+        }
     }
 
-    public class Seller : Market
+    public class Seller : Market, IShower
     {
         private int _earnedMoney;
 
@@ -144,7 +178,6 @@ namespace VirtualShop
         {
             _earnedMoney = 0;
         }
-
         public int EarnedMoney => _earnedMoney;
 
         public void SellProducts(int priceBasket)
