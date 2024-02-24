@@ -19,8 +19,8 @@ namespace VirtualShop
             Seller seller = new Seller();
             Client client = new Client(money);
 
+            PurchaseHandler purchaseHandler = new PurchaseHandler();
             Market market = Market.Initialize();
-            PurchaseHandler purchaseHandler = PurchaseHandler.Initialize();
 
             market.AddProducts(new List<Product>
             {
@@ -85,18 +85,6 @@ namespace VirtualShop
     public class PurchaseHandler
     {
         private const string ContinueChopping = "Купить";
-
-        static public PurchaseHandler HandlerSingle = null;
-
-        protected PurchaseHandler() { }
-
-        static public PurchaseHandler Initialize()
-        {
-            if (HandlerSingle == null)
-                HandlerSingle = new PurchaseHandler();
-
-            return HandlerSingle;
-        }
 
         public void Buy(Seller seller, Client client)
         {
