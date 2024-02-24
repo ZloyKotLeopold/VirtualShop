@@ -54,7 +54,7 @@ namespace VirtualShop
                         break;
 
                     case ParameterShowBasket:
-                        client.ShowProducts();
+                        client.ShowInventory();
                         break;
 
                     case ParameterShop:
@@ -126,7 +126,7 @@ namespace VirtualShop
             }
         }
 
-        public void ShowProducts()
+        public void ShowInventory()
         {
             foreach (var product in _inventory)
                 Console.WriteLine($"{product.Name} по цене: {product.Price}.");
