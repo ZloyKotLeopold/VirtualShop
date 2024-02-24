@@ -6,14 +6,13 @@ namespace VirtualShop
 {
     internal class Program
     {
-        static void Main(string[] args)
-        {
-            const int ParameterShowAssortment = 1;
-            const int ParameterShowBasket = 2;
-            const int ParameterShop = 3;
-            const int ParameterExit = 4;
+        private const int ParameterShowAssortment = 1;
+        private const int ParameterShowBasket = 2;
+        private const int ParameterShop = 3;
+        private const int ParameterExit = 4;
 
-            string userInput;
+        static void Main()
+        {           
             int money = 500;
             bool isActive = true;
 
@@ -46,7 +45,7 @@ namespace VirtualShop
                 Console.WriteLine($"Для того чтобы совершать покупки введите - {ParameterShop}");
                 Console.WriteLine($"Для того чтобы выйти введите - {ParameterExit}");
 
-                userInput = Console.ReadLine();
+                string userInput = Console.ReadLine();
 
                 int.TryParse( userInput, out int inputNumber );
 
@@ -69,6 +68,7 @@ namespace VirtualShop
                     break;
 
                     default:
+                        Console.WriteLine("Некорректный ввод.");
                         break;
                 }
 
@@ -105,7 +105,7 @@ namespace VirtualShop
 
     public class Client : Market, IShower
     {
-        private List<Product> _inventory;
+        private readonly List<Product> _inventory;
         private int _money;
 
         public Client(int money)
@@ -180,8 +180,8 @@ namespace VirtualShop
 
     public class Market
     {
+        private readonly List<Product> _basket;
         private List<Product> _products;
-        private List<Product> _basket;
 
         public Market()
         {
