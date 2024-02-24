@@ -119,12 +119,12 @@ namespace VirtualShop
 
                 _inventory.AddRange(Products);
 
-                Products.Clear();
-
                 Console.WriteLine($"Вы купили: ");
 
                 foreach (var product in GetProducts)
                     Console.WriteLine($"{product.Name} по цене: {product.Price}.");
+
+                Products.Clear();
             }
             else
             {
