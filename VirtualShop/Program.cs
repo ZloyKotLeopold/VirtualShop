@@ -84,7 +84,7 @@ namespace VirtualShop
 
     public class PurchaseHandler
     {
-        private const string ContinueChopping = "Купить";
+        private const string ContinueChoppingCommand = "Купить";
 
         public void Buy(Seller seller, Client client)
         {
@@ -99,11 +99,11 @@ namespace VirtualShop
 
                 PutInBasket(seller, client, userInput);
 
-                Console.WriteLine($"Если хотите продолжить покупки напишите '{ContinueChopping}' или нажмите 'Enter'.");
+                Console.WriteLine($"Если хотите продолжить покупки напишите '{ContinueChoppingCommand}' или нажмите 'Enter'.");
 
                 userInput = Console.ReadLine();
 
-                if (userInput.ToLower() == ContinueChopping.ToLower())                
+                if (userInput.ToLower() == ContinueChoppingCommand.ToLower())                
                     canPurchase = false;               
             }
 
