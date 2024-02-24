@@ -107,8 +107,6 @@ namespace VirtualShop
 
         public bool IsAbleToPay => PriceBasket <= _money;
 
-        public IReadOnlyCollection<Product> Inventory => _inventory;
-
         public void BuyProducts(IReadOnlyCollection<Product> basket)
         {
             if (basket.Count > 0)
@@ -145,8 +143,6 @@ namespace VirtualShop
             _products = new List<Product>();
             _earnedMoney = 0;
         }
-
-        public int EarnedMoney => _earnedMoney;
 
         public IReadOnlyCollection<Product> Products => _products;
 
@@ -232,14 +228,14 @@ namespace VirtualShop
 
     public class Product
     {
-        public string Name { get; private set; }
-        public int Price { get; private set; }
-
         public Product(string name, int price)
         {
             Name = name;
             Price = price;
         }
+
+        public string Name { get; private set; }
+        public int Price { get; private set; }
 
         public void ShowProduct()
         {
