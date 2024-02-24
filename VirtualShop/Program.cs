@@ -51,11 +51,11 @@ namespace VirtualShop
                 switch (inputNumber)
                 {
                     case ParameterShowAssortment:
-
+                        seller.ShowProducts();
                     break; 
 
                     case ParameterShowBasket:
-
+                        client.ShowProducts();
                     break; 
 
                     case ParameterShop:
@@ -125,7 +125,6 @@ namespace VirtualShop
         void ShowProducts();
     }
 
-
     public class Client : Market, IShower
     {
         private List<Product> _inventory;
@@ -192,6 +191,12 @@ namespace VirtualShop
             {
                 Console.WriteLine("В корзине клиента нет товара.");
             }
+        }
+
+        public void ShowProducts()
+        {
+            foreach (var product in Products)
+                Console.WriteLine($"{product.Name} по цене: {product.Price}.");
         }
     }
 
