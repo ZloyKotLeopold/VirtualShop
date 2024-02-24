@@ -87,9 +87,9 @@ namespace VirtualShop
 
         public bool IsAbleToPay => PriceBasket <= Money;
 
-        public void FillProducts(Product product) => Products.Add(product);
-
         public IReadOnlyCollection<Product> GetProducts => Products;
+
+        public void FillProducts(Product product) => Products.Add(product);
 
         public virtual void ShowProducts()
         {
