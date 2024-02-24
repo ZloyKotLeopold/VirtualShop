@@ -21,6 +21,8 @@ namespace VirtualShop
             Client client = new Client(money);
             Market market = new Market();
 
+            PurchaseHandler purchaseHandler = PurchaseHandler.Initialize();
+
             market.AddProducts(new List<Product>
             {
                 new Product("Молоко", 55),
@@ -59,7 +61,7 @@ namespace VirtualShop
                     break; 
 
                     case ParameterShop:
-
+                        purchaseHandler.Buy();
                     break; 
 
                     case ParameterExit:
@@ -72,57 +74,33 @@ namespace VirtualShop
 
                 Console.ReadKey();
             }
-        }
-
-        static private void ShowProducts(IReadOnlyCollection<Product> products)
-        {
-            foreach (var product in products)
-                product.ShowProduct();
-        }
-
-        static private void FillBasket(Client client, Seller seller)
-        {
-            const string ParameterStopFilling = "Хватит";
-
-            string userInput;
-            bool isFiiling = true;
-
-            while (isFiiling)
-            {
-                ShowProducts(seller.Products);
-
-                Console.WriteLine("Если хотите положть товар в корзину введите имя товара.");
-                Console.WriteLine($"Если хотите продолжить покупки введите - {ParameterStopFilling}");
-
-                userInput = Console.ReadLine();
-
-                if (userInput == ParameterStopFilling)
-                {
-                    isFiiling = false;
-                }
-                else
-                {
-                    try
-                    {
-                        client.AddInBasket(seller.Products.Where(product => product.Name.Contains(userInput)).First());
-
-                        Console.WriteLine($"Вы положили в корзину {userInput}.");
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Такого товара нет, либо неверно ввели название.");
-                    }
-                }
-
-                Console.ReadKey();
-            }
-        }
-
+        }      
     }
 
     public interface IShower
     {
         void ShowProducts();
+    }
+
+    public class PurchaseHandler
+    {
+        static public PurchaseHandler HandlerSingle = null;
+
+        protected PurchaseHandler() { }
+
+        static public PurchaseHandler Initialize()
+        {
+            if (HandlerSingle == null)
+                HandlerSingle = new PurchaseHandler();            
+
+            return HandlerSingle;
+        }
+
+        public void Buy()
+        {
+            Console.WriteLine("Я покупаю.");
+        }
+
     }
 
     public class Client : Market, IShower
@@ -172,11 +150,11 @@ namespace VirtualShop
     public class Seller : Market, IShower
     {
         private int _earnedMoney;
-
         public Seller()
         {
             _earnedMoney = 0;
         }
+
         public int EarnedMoney => _earnedMoney;
 
         public void SellProducts(int priceBasket)
@@ -204,13 +182,11 @@ namespace VirtualShop
     {
         private List<Product> _products;
         private List<Product> _basket;
-        private Seller _seller;
 
         public Market()
         {
             _products = new List<Product>();
             _basket = new List<Product>();
-            _seller = new Seller();
         }
 
         public void AddProducts(List<Product> products) => _products.AddRange(products);
