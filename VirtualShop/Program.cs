@@ -70,8 +70,7 @@ namespace VirtualShop
                         break;
                 }
 
-                Console.ReadKey();
-            
+                Console.ReadKey();           
             }
         }
     }
