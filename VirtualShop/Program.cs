@@ -19,8 +19,9 @@ namespace VirtualShop
 
             Seller seller = new Seller();
             Client client = new Client(money);
+            Market market = new Market();
 
-            seller.BringProducts(new List<Product>
+            market.AddProducts(new List<Product>
             {
                 new Product("Молоко", 55),
                 new Product("Хлеб", 27),
@@ -45,39 +46,7 @@ namespace VirtualShop
 
                 userInput = Console.ReadLine();
 
-                if (int.TryParse(userInput, out int inputNumber))
-                {
-                    switch (inputNumber)
-                    {
-                        case ParameterShowAssortment:
-                            ShowProducts(seller.Products);
-                            break;
 
-                        case ParameterShowBasket:
-                            ShowProducts(client.Basket);
-
-                            if (client.Basket.Count == 0)
-                                Console.WriteLine("В корзине нет товара.\n");
-                            break;
-
-                        case ParameterShop:
-                            FillBasket(client, seller);
-                            client.BuyProduct();
-                            break;
-
-                        case ParameterExit:
-                            isActive = false;
-                            break;
-
-                        default:
-                            Console.WriteLine("Неверное значение.");
-                            break;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Вы ввели неверное значение.");
-                }
 
                 Console.ReadKey();
             }
@@ -129,69 +98,94 @@ namespace VirtualShop
 
     }
 
-    public class Client
+    public class Client : Market
     {
+        private List<Product> _inventory;
         private int _money;
-        private int _priceBasket;
-        private List<Product> _basket;
 
         public Client(int money)
         {
+            _inventory = new List<Product>();
             _money = money;
-            _basket = new List<Product>();
         }
 
-        public void AddInBasket(Product product) => _basket.Add(product);
+        public IReadOnlyCollection<Product> Inventory => _inventory;
 
-        public void BuyProduct()
+        public void AddToBasket(Product product) => FillBasket(product);
+
+        public void BuyProducts(Seller seller)
         {
-            if (_basket.Count > 0)
+            int priceBasket = Basket.Sum(product => product.Price);
+
+            if (_money >= priceBasket)
             {
-                foreach (var product in _basket)
-                {
-                    _priceBasket += product.Price;
-                }
+                seller.SellProducts(priceBasket);
 
-                if (_priceBasket <= _money)
-                {
-                    _money -= _priceBasket;
-                }
-                else
-                {
-                    _basket.Clear();
+                _money -= priceBasket;
 
-                    Console.WriteLine("У вас недостаточно денег чтоб купить товар.");
-                }
+                _inventory.AddRange(Basket);
+
+                ClearBasket();
             }
             else
             {
-                Console.WriteLine("В вашей корзине нет товара.");
+                Console.WriteLine("У клиента недостаточно денег, чтобы купить товар.");
             }
         }
 
-        public IReadOnlyCollection<Product> Basket => _basket;
+        public int Money => _money;
     }
 
-    public class Seller
+    public class Seller : Market
     {
-        private List<Product> _products;
+        private int _earnedMoney;
 
         public Seller()
         {
-            _products = new List<Product>();
+            _earnedMoney = 0;
         }
 
-        public void BringProducts(List<Product> product) => _products.AddRange(product);
+        public int EarnedMoney => _earnedMoney;
 
-        public void SellProducts(Client client)
+        public void SellProducts(int priceBasket)
         {
-            client.BuyProduct();
+            if (priceBasket > 0)
+            {
+                _earnedMoney += priceBasket;
 
-            if (client.Basket.Count > 0)
-                _products.RemoveAll(product => client.Basket.Contains(product));
+                RemoveProducts();
+            }
+            else
+            {
+                Console.WriteLine("В корзине клиента нет товара.");
+            }
         }
+    }
+
+    public class Market
+    {
+        private List<Product> _products;
+        private List<Product> _basket;
+        private Seller _seller;
+
+        public Market()
+        {
+            _products = new List<Product>();
+            _basket = new List<Product>();
+            _seller = new Seller();
+        }
+
+        public void AddProducts(List<Product> products) => _products.AddRange(products);
 
         public IReadOnlyCollection<Product> Products => _products;
+
+        protected void RemoveProducts() => _products = _products.Except(_basket).ToList();
+
+        protected void FillBasket(Product product) => _basket.Add(product);
+
+        protected void ClearBasket() => _basket.Clear();
+
+        protected IReadOnlyCollection<Product> Basket => _basket;
     }
 
     public class Product
