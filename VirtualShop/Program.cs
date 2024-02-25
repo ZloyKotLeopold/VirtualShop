@@ -83,10 +83,6 @@ namespace VirtualShop
             Products = new List<Product>();
         }
 
-        public IReadOnlyCollection<Product> GetProducts => Products;
-
-        public void FillProducts(Product product) => Products.Add(product);
-
         public virtual void ShowProducts()
         {
             foreach (var product in Products)
