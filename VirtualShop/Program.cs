@@ -8,17 +8,11 @@ namespace VirtualShopm
     {
         static void Main()
         {
-            const string parameterShowAssortment = "1";
-            const string parameterShowBasket = "2";
-            const string parameterShop = "3";
-            const string parameterExit = "4";
-
             int money = 500;
-            bool isActive = true;
 
             Seller seller = new Seller();
             Client client = new Client(money);
-            Market market = new Market();
+            Market market = new Market(seller, client);
 
             seller.AddProducts(new List<Product>
             {
@@ -34,42 +28,7 @@ namespace VirtualShopm
                 new Product("Чипсы", 75),
             });
 
-            while (isActive)
-            {
-                Console.Clear();
-
-                Console.WriteLine($"Для того чтобы посмотреть ассортимент магазина введите - {parameterShowAssortment}");
-                Console.WriteLine($"Для того чтобы посмотреть ваши вещи введите - {parameterShowBasket}");
-                Console.WriteLine($"Для того чтобы совершать покупки введите - {parameterShop}");
-                Console.WriteLine($"Для того чтобы выйти введите - {parameterExit}");
-
-                string userInput = Console.ReadLine();
-
-                switch (userInput)
-                {
-                    case parameterShowAssortment:
-                        seller.ShowProducts();
-                        break;
-
-                    case parameterShowBasket:
-                        client.ShowProducts();
-                        break;
-
-                    case parameterShop:
-                        market.MakeDeal(seller, client);
-                        break;
-
-                    case parameterExit:
-                        isActive = false;
-                        break;
-
-                    default:
-                        Console.WriteLine("Некорректный ввод.");
-                        break;
-                }
-
-                Console.ReadKey();
-            }
+            market.StartGame();
         }
     }
 
@@ -83,7 +42,7 @@ namespace VirtualShopm
             Products = new List<Product>();
         }
 
-        public virtual void ShowProducts()
+        public void ShowProducts()
         {
             foreach (var product in Products)
                 Console.WriteLine($"{product.Name} по цене: {product.Price}.");
@@ -146,15 +105,70 @@ namespace VirtualShopm
 
     public class Market
     {
-        public void MakeDeal(Seller seller, Client client)
+        private readonly Seller _seller;
+        private readonly Client _client;
+        public Market(Seller seller, Client client)
         {
-            if (seller.TryGetProduct(out Product product))
-            {
-                if (client.CanPay(product.Price))
-                {
-                    seller.Sell(product);
+            _seller = seller;
+            _client = client;
+        }
 
-                    client.Buy(product);
+        public void StartGame()
+        {
+            const string ParameterShowAssortment = "1";
+            const string ParameterShowBasket = "2";
+            const string ParameterShop = "3";
+            const string ParameterExit = "4";
+
+            bool isActive = true;
+
+            while (isActive)
+            {
+                Console.Clear();
+
+                Console.WriteLine($"Для того чтобы посмотреть ассортимент магазина введите - {ParameterShowAssortment}");
+                Console.WriteLine($"Для того чтобы посмотреть ваши вещи введите - {ParameterShowBasket}");
+                Console.WriteLine($"Для того чтобы совершать покупки введите - {ParameterShop}");
+                Console.WriteLine($"Для того чтобы выйти введите - {ParameterExit}");
+
+                string userInput = Console.ReadLine();
+
+                switch (userInput)
+                {
+                    case ParameterShowAssortment:
+                        _seller.ShowProducts();
+                        break;
+
+                    case ParameterShowBasket:
+                        _client.ShowProducts();
+                        break;
+
+                    case ParameterShop:
+                        MakeDeal();
+                        break;
+
+                    case ParameterExit:
+                        isActive = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Некорректный ввод.");
+                        break;
+                }
+
+                Console.ReadKey();
+            }
+        }
+
+        private void MakeDeal()
+        {
+            if (_seller.TryGetProduct(out Product product))
+            {
+                if (_client.CanPay(product.Price))
+                {
+                    _seller.Sell(product);
+
+                    _client.Buy(product);
                 }
                 else
                 {
