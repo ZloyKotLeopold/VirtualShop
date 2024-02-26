@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace VirtualShop
+namespace VirtualShopm
 {
     internal class Program
     {
@@ -18,7 +18,7 @@ namespace VirtualShop
 
             Seller seller = new Seller();
             Client client = new Client(money);
-            Market market = new Market(seller, client);
+            Market market = new Market();
 
             seller.AddProducts(new List<Product>
             {
@@ -56,7 +56,7 @@ namespace VirtualShop
                         break;
 
                     case parameterShop:
-                        market.MakeDeal();
+                        market.MakeDeal(seller, client);
                         break;
 
                     case parameterExit:
@@ -73,12 +73,12 @@ namespace VirtualShop
         }
     }
 
-    public class Deal
+    public class Human
     {
         protected int Money;
         protected List<Product> Products;
 
-        public Deal()
+        public Human()
         {
             Products = new List<Product>();
         }
@@ -88,81 +88,73 @@ namespace VirtualShop
             foreach (var product in Products)
                 Console.WriteLine($"{product.Name} по цене: {product.Price}.");
         }
-
-        protected int PriceBasket => Products.Sum(product => product.Price);
-
     }
 
-    public class Client : Deal
+    public class Client : Human
     {
         public Client(int money)
         {
             Money = money;
         }
 
-        public bool IsAbleToPay(int price) => price <= Money;
+        public bool CanPay(int price) => price <= Money;
 
         public void Buy(Product product)
         {
-            Money -= PriceBasket;
+            Money -= product.Price;
 
             Products.Add(product);
 
-            Console.WriteLine($"Вы купили: {product.Name} за {product.Price} условных попугаев.");           
+            Console.WriteLine($"Вы купили: {product.Name} за {product.Price} условных попугаев.");
         }
-
     }
 
-    public class Seller : Deal
+    public class Seller : Human
     {
         public void AddProducts(List<Product> products) => Products.AddRange(products);
 
-        public (bool, Product) TryGetProduct(string productName)
+        public bool TryGetProduct(out Product foundProduct)
         {
+            Console.WriteLine($"Введите название товара который хотите купить.");
+
+            string productName = Console.ReadLine();
+
             foreach (var product in Products)
+            {
                 if (product.Name.ToLower() == productName.ToLower())
-                    return (true, product);
+                {
+                    foundProduct = product;
+
+                    return true;
+                }
+            }
 
             Console.WriteLine($"Такого товару нету...");
 
-            return (false, null);
+            foundProduct = null;
+
+            return false;
         }
 
         public void Sell(Product product)
         {
+            Money += product.Price;
+
             Products.Remove(product);
         }
-
     }
 
     public class Market
     {
-        private readonly Seller _seller;
-        private readonly Client _client;
-
-        public Market(Seller seller, Client client)
+        public void MakeDeal(Seller seller, Client client)
         {
-            _seller = seller;
-            _client = client;
-        }
-
-        public void MakeDeal()
-        {
-            string userInput;
-
-            Console.WriteLine($"Введите название товара который хотите купить.");
-
-            userInput = Console.ReadLine();
-
-            var TryGetProduct = _seller.TryGetProduct(userInput);
-
-            if (TryGetProduct.Item1)
+            if (seller.TryGetProduct(out Product product))
             {
-                if (_client.IsAbleToPay(TryGetProduct.Item2.Price))
+                if (client.CanPay(product.Price))
                 {
-                    _seller.Sell(TryGetProduct.Item2);
+                    seller.Sell(product);
 
-                    _client.Buy(TryGetProduct.Item2);                   
+                    client.Buy(product);
                 }
                 else
                 {
@@ -170,7 +162,6 @@ namespace VirtualShop
                 }
             }
         }
-
     }
 
     public class Product
