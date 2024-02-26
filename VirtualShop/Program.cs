@@ -107,6 +107,7 @@ namespace VirtualShopm
     {
         private readonly Seller _seller;
         private readonly Client _client;
+
         public Market(Seller seller, Client client)
         {
             _seller = seller;
